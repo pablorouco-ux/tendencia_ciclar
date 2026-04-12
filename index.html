@@ -423,7 +423,7 @@
             <div class="natura-nav-sub">Gestión Comercial · Natura &amp; Avon</div>
         </div>
     </div>
-    <div id="nav-timestamp" class="natura-nav-sub">Datos actualizados: 12/04/2026 a las 09:12 hs</div>
+    <div id="nav-timestamp" class="natura-nav-sub">Datos actualizados: 12/04/2026 a las 09:25 hs</div>
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
@@ -436,17 +436,12 @@
                 <label class="filter-label" for="v17-sel-ciclo">Ciclo Comercial</label>
                 <select id="v17-sel-ciclo" class="form-select">
                     <option value="ALL">Total Ciclos</option>
-                    <option value="202604">202604</option>
-                    <option value="202605">202605</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <label class="filter-label" for="v17-sel-empresa">Empresa</label>
                 <select id="v17-sel-empresa" class="form-select">
                     <option value="ALL">Todas las Empresas</option>
-                    <option value="NATURA">NATURA</option>
-                    <option value="AVON CFT">AVON CFT</option>
-                    <option value="AVON C&E">AVON C&amp;E</option>
                 </select>
             </div>
             <div class="col text-end">
@@ -779,6 +774,9 @@
                 document.getElementById('chart-section').style.display = 'block';
                 document.getElementById('table-section').style.display  = 'block';
 
+                // Poblar filtros dinámicamente
+                populateFilters(data);
+
                 // Timestamp de carga
                 document.getElementById('nav-timestamp').innerText =
                     "Datos actualizados: " + new Date().toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
@@ -797,6 +795,27 @@
                 lucide.createIcons();
             });
     };
+
+    // — Poblar filtros —
+    function populateFilters(data) {
+        const cSel = document.getElementById('v17-sel-ciclo');
+        const eSel = document.getElementById('v17-sel-empresa');
+
+        const ciclos   = [...new Set(data.map(d => String(d.Ciclo)))].sort((a, b) => b - a);
+        const empresas = [...new Set(data.map(d => d.Empresa))].sort();
+
+        ciclos.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c; opt.innerText = c;
+            cSel.appendChild(opt);
+        });
+
+        empresas.forEach(e => {
+            const opt = document.createElement('option');
+            opt.value = e; opt.innerText = e;
+            eSel.appendChild(opt);
+        });
+    }
 </script>
 </body>
 </html>
