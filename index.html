@@ -160,7 +160,7 @@
             <p class="text-[11px] text-text-muted">Gestión Comercial · Natura &amp; Avon</p>
         </div>
     </div>
-    <div id="nav-timestamp" class="text-xs text-text-muted font-medium">Datos actualizados: 03/06/2026 a las 14:17 hs</div>
+    <div id="nav-timestamp" class="text-xs text-text-muted font-medium">Datos actualizados: 03/06/2026 a las 14:30 hs</div>
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
@@ -330,14 +330,19 @@
         const mcPct   = tr_net  !== 0 ? ((tr_net  - tc) / tr_net  * 100) : 0;
         const pmcPct  = pr_net  !== 0 ? ((pr_net  - pc) / pr_net  * 100) : 0;
 
+        // Gap de Productividad = Tendencia - Estimada (diferencia absoluta)
+        const gapProd = tp - pp;
+
         document.getElementById('k-u').innerText = fNum(tu);
         document.getElementById('k-r').innerText = fNum(tr, true);
-        document.getElementById('k-p').innerText = tp > 0 ? tp.toFixed(1).replace('.', ',') : "—";
+        // Mostrar valor de tendencia siempre (incluso si es 0 o negativo)
+        document.getElementById('k-p').innerText = filtered.length > 0 ? tp.toFixed(1).replace('.', ',') : "—";
         document.getElementById('k-m').innerText = mcPct.toFixed(1).replace('.', ',') + "%";
 
         setKpiTrend('t-u', pu > 0 ? ((tu - pu) / pu * 100) : 0);
         setKpiTrend('t-r', pr > 0 ? ((tr - pr) / pr * 100) : 0);
-        setKpiTrend('t-p', pp > 0 ? ((tp - pp) / pp * 100) : 0);
+        // Gap productividad: diferencia absoluta con prefijo y color
+        setKpiTrendAbs('t-p', gapProd);
         setKpiTrend('t-m', mcPct - pmcPct, " pp vs Plan");
 
         renderV17Chart(filtered);
@@ -350,6 +355,18 @@
         e.innerText    = `${p}${v.toFixed(1).replace('.', ',')}${s}`;
         
         // Menores a cero en rojo (t-red), iguales o mayores en verde (t-green)
+        if (v >= 0) {
+            e.className = "text-xs font-semibold mt-1 t-green";
+        } else {
+            e.className = "text-xs font-semibold mt-1 t-red";
+        }
+    }
+
+    // Variante para diferencias absolutas (productividad)
+    function setKpiTrendAbs(id, v, s = " vs Plan") {
+        const e = document.getElementById(id);
+        const p = v >= 0 ? "+" : "";
+        e.innerText = `${p}${v.toFixed(1).replace('.', ',')}${s}`;
         if (v >= 0) {
             e.className = "text-xs font-semibold mt-1 t-green";
         } else {
