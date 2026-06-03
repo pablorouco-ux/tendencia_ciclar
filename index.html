@@ -423,7 +423,7 @@
             <div class="natura-nav-sub">Gestión Comercial · Natura &amp; Avon</div>
         </div>
     </div>
-    <div id="nav-timestamp" class="natura-nav-sub">Datos actualizados: 03/06/2026 a las 11:04 hs</div>
+    <div id="nav-timestamp" class="natura-nav-sub">Datos actualizados: 03/06/2026 a las 13:13 hs</div>
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
@@ -585,7 +585,7 @@
 
         document.getElementById('k-u').innerText = fNum(tu);
         document.getElementById('k-r').innerText = fNum(tr, true);
-        document.getElementById('k-p').innerText = fNum(tp);
+        document.getElementById('k-p').innerText = tp !== null && tp !== undefined && !isNaN(tp) ? tp.toFixed(1).replace('.', ',') : "—";
         document.getElementById('k-m').innerText = mcPct.toFixed(1).replace('.', ',') + "%";
 
         setKpiTrend('t-u', pu > 0 ? ((tu - pu) / pu * 100) : 0);
@@ -691,7 +691,7 @@
                 <td class="${gU < 0 ? 't-red' : 't-green'}">${gU.toFixed(1).replace('.', ',')}%</td>
                 <td style="color:var(--text-main)">${fNum(r.tr, true)}</td>
                 <td class="${gR < 0 ? 't-red' : 't-green'}">${gR.toFixed(1).replace('.', ',')}%</td>
-                <td style="font-weight:600;color:var(--natura-orange)">${fNum(r.tp / r.c)}</td>
+                <td style="font-weight:600;color:var(--natura-orange)" class="text-right">${(r.tp / r.c).toFixed(1).replace('.', ',')}</td>
             `;
             tbody.appendChild(tr);
         });
