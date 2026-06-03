@@ -6,535 +6,278 @@
     <meta name="description" content="Tablero de Tendencias Ciclares — Monitoreo de ventas, KPIs y performance por categoría. Natura Gestión Comercial.">
     <title>Tendencias Ciclares | Natura Gestión Comercial</title>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'natura-orange': '#FF6B00',
+                        'natura-orange-hover': '#E66000',
+                        'natura-accent': '#FE772C',
+                        'app-bg': '#F8FAFC',
+                        'card-bg': '#FFFFFF',
+                        'natura-light': '#FFF5F0',
+                        'natura-gray': '#F4F4F4',
+                        'text-main': '#1F2937',
+                        'text-secondary': '#64748B',
+                        'text-muted': '#9CA3AF',
+                        'status-success-bg': '#DCFCE7',
+                        'status-success-text': '#15803D',
+                        'status-warning-bg': '#FEF3C7',
+                        'status-warning-text': '#B45309',
+                        'status-error-bg': '#FEE2E2',
+                        'status-error-text': '#B91C1C',
+                    },
+                    fontFamily: {
+                        primary: ['NaturaAndCo', 'Inter', 'sans-serif'],
+                        secondary: ['Montserrat', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'btn': '0.75rem',    /* rounded-xl */
+                        'card': '1rem',      /* rounded-2xl */
+                        'modal': '1.5rem',   /* rounded-3xl */
+                    },
+                    animation: {
+                        fadeIn: 'fadeIn 0.3s ease-out forwards',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(8px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
     <style>
-        /* =====================================================
-           NATURA DESIGN SYSTEM — TOKENS OFICIALES
-           Fuente de verdad: UXUI Natura Syst.txt
-           ===================================================== */
-        :root {
-            --natura-orange:       #FF6B00;
-            --natura-orange-hover: #E66000;
-            --natura-accent:       #FE772C;
-
-            --app-bg:              #F8FAFC;
-            --card-bg:             #FFFFFF;
-            --natura-light:        #FFF5F0;
-            --natura-gray:         #F4F4F4;
-
-            --text-main:           #1F2937;
-            --text-secondary:      #64748B;
-            --text-muted:          #9CA3AF;
-
-            --status-success-bg:   #DCFCE7;
-            --status-success-text: #15803D;
-            --status-warning-bg:   #FEF3C7;
-            --status-warning-text: #B45309;
-            --status-error-bg:     #FEE2E2;
-            --status-error-text:   #B91C1C;
-
-            --border-color:        #E5E7EB;
-            --border-radius-card:  1rem;       /* rounded-2xl */
-            --border-radius-btn:   0.75rem;    /* rounded-xl */
-            --border-radius-modal: 1.5rem;     /* rounded-3xl */
-        }
-
-        /* =====================================================
-           BASE
-           ===================================================== */
-        * { box-sizing: border-box; }
-
         body {
-            font-family: 'Inter', 'Montserrat', sans-serif;
-            background-color: var(--app-bg);
-            color: var(--text-main);
-            padding-bottom: 80px;
-            -webkit-font-smoothing: antialiased;
+            font-family: 'Inter', sans-serif;
+            background-color: #F8FAFC; /* app-bg */
+            color: #1F2937; /* text-main */
         }
-
-        /* =====================================================
-           NAVEGACIÓN
-           ===================================================== */
-        .natura-nav {
-            background-color: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 14px 48px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        
+        /* DataTables Natura overrides */
+        .dataTables_wrapper {
+            padding: 1rem 0;
         }
-
-        .natura-nav-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        table.dataTable {
+            border-collapse: collapse !important;
+            width: 100% !important;
+            border: 1px solid #F1F5F9 !important;
+            border-radius: 1rem;
+            overflow: hidden;
         }
-
-        .natura-nav-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--natura-orange);
-            flex-shrink: 0;
-        }
-
-        .natura-nav-title {
-            font-family: 'Montserrat', sans-serif;
-            font-weight: 700;
-            font-size: 0.85rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: var(--text-main);
-        }
-
-        .natura-nav-sub {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            font-weight: 400;
-            letter-spacing: 0.02em;
-        }
-
-        /* =====================================================
-           CARDS
-           ===================================================== */
-        .natura-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-card);
-            padding: 24px;
-            margin-top: 20px;
-            transition: box-shadow 0.2s ease, transform 0.2s ease;
-        }
-
-        .natura-card:hover {
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-            transform: translateY(-1px);
-        }
-
-        /* KPI Cards */
-        .kpi-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 10px;
-        }
-
-        .kpi-value {
-            font-size: 1.9rem;
-            font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.02em;
-            line-height: 1;
-        }
-
-        .kpi-trend {
-            font-size: 0.82rem;
-            margin-top: 6px;
-            font-weight: 500;
-        }
-
-        .kpi-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: var(--natura-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 14px;
-            color: var(--natura-orange);
-        }
-
-        /* =====================================================
-           TABLA MAESTRA
-           ===================================================== */
         table.dataTable thead th {
-            background-color: var(--natura-gray);
-            color: var(--text-muted);
-            font-size: 0.65rem;
-            font-weight: 600;
-            padding: 14px 16px !important;
-            border-bottom: 1px solid var(--border-color) !important;
+            background-color: #F8FAFC !important;
+            color: #64748B !important;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 10px !important;
+            font-weight: 700 !important;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
-            border-top: none !important;
+            letter-spacing: 0.15em;
+            padding: 14px 16px !important;
+            border-bottom: 1px solid #E2E8F0 !important;
         }
-
         table.dataTable tbody tr {
-            transition: background 0.15s ease;
+            background-color: #FFFFFF !important;
+            border-bottom: 1px solid #F1F5F9 !important;
         }
-
         table.dataTable tbody tr:hover {
-            background-color: var(--app-bg) !important;
+            background-color: #FFF5F0 !important; /* natura-light on hover */
         }
-
         table.dataTable tbody td {
-            padding: 13px 16px !important;
-            border-bottom: 1px solid #F3F4F6 !important;
-            font-size: 0.9rem;
+            padding: 14px 16px !important;
+            color: #1F2937;
+            font-size: 0.875rem;
             vertical-align: middle;
         }
-
+        
+        /* Details open/close control */
         td.details-control {
             background: url('https://www.datatables.net/examples/resources/details_open.png') no-repeat center center;
             cursor: pointer;
             width: 40px;
         }
-
         tr.shown td.details-control {
             background: url('https://www.datatables.net/examples/resources/details_close.png') no-repeat center center;
         }
-
-        /* =====================================================
-           TABLA HIJO (detalle expandido)
-           ===================================================== */
-        .child-card {
-            padding: 24px;
-            background-color: var(--app-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            margin: 12px 16px;
+        
+        /* Search and paginate styling conforming to design guidelines */
+        .dataTables_filter {
+            margin-bottom: 1rem !important;
         }
-
-        .child-tbl { width: 100%; font-size: 0.82rem; }
-
-        .child-tbl th {
-            color: var(--text-muted);
-            font-size: 0.65rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            border-bottom: 1px solid #E5E7EB;
-            padding-bottom: 10px;
-        }
-
-        .child-tbl td {
-            padding: 11px 6px;
-            border-bottom: 1px solid #F3F4F6;
-            color: var(--text-main);
-        }
-
-        /* =====================================================
-           ESTADOS (colores semánticos)
-           ===================================================== */
-        .t-red  { color: var(--status-error-text);   font-weight: 600; }
-        .t-green { color: var(--status-success-text); font-weight: 600; }
-
-        /* =====================================================
-           SWITCH DE MÉTRICAS
-           ===================================================== */
-        .btn-sw {
-            display: flex;
-            background: var(--natura-gray);
-            padding: 4px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            gap: 2px;
-        }
-
-        .btn-sw-opt {
-            border: none;
-            background: none;
-            font-size: 0.72rem;
-            padding: 6px 18px;
-            border-radius: 16px;
-            font-weight: 600;
-            color: var(--text-muted);
-            cursor: pointer;
-            transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn-sw-opt:hover { color: var(--text-secondary); }
-
-        .btn-sw-opt.active {
-            background: var(--card-bg);
-            color: var(--natura-orange);
-            box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
-        }
-
-        /* =====================================================
-           CONTROLES DE FILTRO
-           ===================================================== */
-        .filter-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            margin-bottom: 6px;
-            display: block;
-        }
-
-        .form-select {
-            border-color: var(--border-color) !important;
-            font-size: 0.88rem;
-            color: var(--text-main);
-            border-radius: var(--border-radius-btn) !important;
-            padding: 9px 14px;
-        }
-
-        .form-select:focus {
-            border-color: var(--natura-orange) !important;
-            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.12) !important;
-        }
-
-        .btn-reset {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 0.78rem;
-            font-weight: 500;
-            padding: 9px 20px;
-            border-radius: var(--border-radius-btn);
-            cursor: pointer;
-            transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-reset:hover {
-            border-color: var(--natura-orange);
-            color: var(--natura-orange);
-            background: var(--natura-light);
-        }
-
-        /* =====================================================
-           LOADING STATE
-           ===================================================== */
-        .loading-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 12px 16px;
-            background: var(--natura-light);
-            border-radius: 10px;
-            margin-top: 16px;
-            font-size: 0.85rem;
-            color: var(--natura-orange);
-            font-weight: 500;
-        }
-
-        .spinner-natura {
-            width: 18px;
-            height: 18px;
-            border: 2px solid #FFD4B8;
-            border-top-color: var(--natura-orange);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        /* =====================================================
-           SECCIÓN TÍTULO
-           ===================================================== */
-        .section-label {
-            font-size: 0.65rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 0;
-        }
-
-        /* =====================================================
-           BADGE CATEGORÍA
-           ===================================================== */
-        .cat-badge {
-            display: inline-block;
-            background: var(--natura-gray);
-            color: var(--text-secondary);
-            font-size: 0.72rem;
-            font-weight: 500;
-            padding: 3px 10px;
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* =====================================================
-           ENTRADA SUAVE (animación)
-           ===================================================== */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.3s ease forwards;
-        }
-
-        /* DataTables overrides */
-        .dataTables_wrapper .dataTables_filter input {
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius-btn);
-            padding: 6px 12px;
-            font-size: 0.85rem;
-            color: var(--text-main);
+        .dataTables_filter input {
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 0.75rem !important; /* rounded-xl */
+            padding: 0.375rem 0.75rem !important;
             outline: none;
+            font-size: 0.875rem;
+            margin-left: 0.5rem;
+        }
+        .dataTables_filter input:focus {
+            border-color: #FF6B00 !important;
+            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1) !important;
+        }
+        .dataTables_paginate .paginate_button.current {
+            background: #FF6B00 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #FF6B00 !important;
+            border-radius: 0.75rem !important;
+        }
+        .dataTables_paginate .paginate_button:hover {
+            background: #FFF5F0 !important;
+            color: #FF6B00 !important;
+            border: 1px solid #FF6B00 !important;
+            border-radius: 0.75rem !important;
         }
 
-        .dataTables_wrapper .dataTables_filter input:focus {
-            border-color: var(--natura-orange);
-            box-shadow: 0 0 0 3px rgba(255, 107, 0, 0.1);
-        }
-
-        .dataTables_wrapper .dataTables_length select {
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 5px 10px;
-            font-size: 0.85rem;
-        }
-
-        .dataTables_wrapper .dataTables_info,
-        .dataTables_wrapper .dataTables_paginate {
-            font-size: 0.82rem;
-            color: var(--text-secondary);
-        }
-
-        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
-            background: var(--natura-orange) !important;
-            border-color: var(--natura-orange) !important;
-            color: white !important;
-            border-radius: 8px !important;
-        }
+        /* Color States - Natura System */
+        .t-red { color: #B91C1C !important; font-weight: 600; }
+        .t-green { color: #15803D !important; font-weight: 600; }
     </style>
 </head>
-<body>
+<body class="bg-app-bg text-text-main pb-24 min-h-screen antialiased">
 
 <!-- NAVEGACIÓN -->
-<header class="natura-nav">
-    <div class="natura-nav-brand">
-        <div class="natura-nav-dot"></div>
+<header class="bg-white border-b border-gray-100 px-6 md:px-12 py-4 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-3">
+        <div class="w-2.5 h-2.5 rounded-full bg-natura-orange"></div>
         <div>
-            <div class="natura-nav-title">Tendencias Ciclares</div>
-            <div class="natura-nav-sub">Gestión Comercial · Natura &amp; Avon</div>
+            <h1 class="font-secondary font-bold text-sm tracking-widest uppercase text-text-main">Tendencias Ciclares</h1>
+            <p class="text-[11px] text-text-muted">Gestión Comercial · Natura &amp; Avon</p>
         </div>
     </div>
-    <div id="nav-timestamp" class="natura-nav-sub">Datos actualizados: 03/06/2026 a las 13:13 hs</div>
+    <div id="nav-timestamp" class="text-xs text-text-muted font-medium">Datos actualizados: 03/06/2026 a las 13:45 hs</div>
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
-<div class="container-fluid px-5 fade-in">
+<div class="max-w-[1600px] mx-auto px-6 md:px-12 mt-6 flex flex-col gap-6 animate-fadeIn">
 
     <!-- FILTROS -->
-    <div class="natura-card">
-        <div class="row g-4 align-items-end">
-            <div class="col-md-3">
-                <label class="filter-label" for="v17-sel-ciclo">Ciclo Comercial</label>
-                <select id="v17-sel-ciclo" class="form-select">
+    <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
+            <div>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2 block" for="v17-sel-ciclo">Ciclo Comercial</label>
+                <select id="v17-sel-ciclo" class="w-full bg-white border border-gray-100 rounded-btn px-4 py-2.5 text-sm text-text-main focus:border-natura-orange focus:ring-2 focus:ring-natura-orange/10 outline-none transition-all">
                     <option value="ALL">Total Ciclos</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="filter-label" for="v17-sel-empresa">Empresa</label>
-                <select id="v17-sel-empresa" class="form-select">
+            <div>
+                <label class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-2 block" for="v17-sel-empresa">Empresa</label>
+                <select id="v17-sel-empresa" class="w-full bg-white border border-gray-100 rounded-btn px-4 py-2.5 text-sm text-text-main focus:border-natura-orange focus:ring-2 focus:ring-natura-orange/10 outline-none transition-all">
                     <option value="ALL">Todas las Empresas</option>
                 </select>
             </div>
-            <div class="col text-end">
-                <button class="btn-reset" onclick="resetV17()" id="btn-reset">
-                    <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>
+            <div class="md:col-span-2 flex justify-end">
+                <button class="bg-white hover:bg-natura-light border border-gray-100 hover:border-natura-orange text-text-secondary hover:text-natura-orange rounded-btn px-5 py-2.5 text-xs font-semibold flex items-center gap-2 transition-all duration-300" onclick="resetV17()" id="btn-reset">
+                    <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
                     Resetear Dashboard
                 </button>
             </div>
         </div>
 
         <!-- Loading State -->
-        <div id="loading-indicator" class="loading-box">
-            <div class="spinner-natura"></div>
+        <div id="loading-indicator" class="flex items-center justify-center gap-3 p-4 bg-natura-light border border-natura-orange/10 rounded-btn mt-4 text-xs font-medium text-natura-orange">
+            <div class="w-4 h-4 border-2 border-natura-orange/20 border-t-natura-orange rounded-full animate-spin"></div>
             Cargando métricas desde el servidor…
         </div>
     </div>
 
     <!-- KPIs -->
-    <div class="row g-3" id="kpi-row" style="display:none!important;">
-        <div class="col-md-3">
-            <div class="natura-card">
-                <div class="kpi-icon"><i data-lucide="package" style="width:18px;height:18px;"></i></div>
-                <div class="kpi-label">Unidades Vendidas</div>
-                <div id="k-u" class="kpi-value">—</div>
-                <div id="t-u" class="kpi-trend">—</div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="kpi-row" style="display:none!important;">
+        <!-- Card 1 -->
+        <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-9 h-9 bg-natura-light rounded-btn flex items-center justify-center text-natura-orange mb-4">
+                <i data-lucide="package" class="w-4 h-4"></i>
             </div>
+            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Unidades Vendidas</div>
+            <div id="k-u" class="text-2xl font-bold text-text-main tracking-tight">—</div>
+            <div id="t-u" class="text-xs font-semibold mt-1">0% vs Plan</div>
         </div>
-        <div class="col-md-3">
-            <div class="natura-card">
-                <div class="kpi-icon"><i data-lucide="dollar-sign" style="width:18px;height:18px;"></i></div>
-                <div class="kpi-label">Receta Bruta</div>
-                <div id="k-r" class="kpi-value">—</div>
-                <div id="t-r" class="kpi-trend">—</div>
+        <!-- Card 2 -->
+        <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-9 h-9 bg-natura-light rounded-btn flex items-center justify-center text-natura-orange mb-4">
+                <i data-lucide="dollar-sign" class="w-4 h-4"></i>
             </div>
+            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Receta Bruta</div>
+            <div id="k-r" class="text-2xl font-bold text-text-main tracking-tight">—</div>
+            <div id="t-r" class="text-xs font-semibold mt-1">0% vs Plan</div>
         </div>
-        <div class="col-md-3">
-            <div class="natura-card">
-                <div class="kpi-icon"><i data-lucide="trending-up" style="width:18px;height:18px;"></i></div>
-                <div class="kpi-label">Productividad</div>
-                <div id="k-p" class="kpi-value">—</div>
-                <div id="t-p" class="kpi-trend">—</div>
+        <!-- Card 3 -->
+        <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-9 h-9 bg-natura-light rounded-btn flex items-center justify-center text-natura-orange mb-4">
+                <i data-lucide="trending-up" class="w-4 h-4"></i>
             </div>
+            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">Productividad</div>
+            <div id="k-p" class="text-2xl font-bold text-text-main tracking-tight">—</div>
+            <div id="t-p" class="text-xs font-semibold mt-1">0% vs Plan</div>
         </div>
-        <div class="col-md-3">
-            <div class="natura-card">
-                <div class="kpi-icon"><i data-lucide="percent" style="width:18px;height:18px;"></i></div>
-                <div class="kpi-label">MC (%)</div>
-                <div id="k-m" class="kpi-value">—</div>
-                <div id="t-m" class="kpi-trend">—</div>
+        <!-- Card 4 -->
+        <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <div class="w-9 h-9 bg-natura-light rounded-btn flex items-center justify-center text-natura-orange mb-4">
+                <i data-lucide="percent" class="w-4 h-4"></i>
             </div>
+            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-1">MC (%)</div>
+            <div id="k-m" class="text-2xl font-bold text-text-main tracking-tight">—</div>
+            <div id="t-m" class="text-xs font-semibold mt-1">0 pp vs Plan</div>
         </div>
     </div>
 
     <!-- GRÁFICO DE CATEGORÍAS -->
-    <div class="natura-card" id="chart-section" style="display:none;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="section-label">Performance por categoría</div>
-            <div class="btn-sw">
-                <button class="btn-sw-opt active" onclick="setMetV17('rec', this)" id="btn-rec">Receta Bruta</button>
-                <button class="btn-sw-opt" onclick="setMetV17('uni', this)" id="btn-uni">Unidades</button>
-                <button class="btn-sw-opt" onclick="setMetV17('mar', this)" id="btn-mar">MC %</button>
+    <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm" id="chart-section" style="display:none;">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest">Performance por categoría</div>
+            <div class="flex bg-natura-gray p-1 rounded-full border border-gray-100">
+                <button class="px-5 py-1.5 rounded-full text-xs font-bold transition-all" onclick="setMetV17('rec', this)" id="btn-rec">Receta Bruta</button>
+                <button class="px-5 py-1.5 rounded-full text-xs font-bold transition-all" onclick="setMetV17('uni', this)" id="btn-uni">Unidades</button>
+                <button class="px-5 py-1.5 rounded-full text-xs font-bold transition-all" onclick="setMetV17('mar', this)" id="btn-mar">MC %</button>
             </div>
         </div>
-        <div id="chart-cat-v17" style="height: 500px;"></div>
+        <div id="chart-cat-v17" style="height: 480px; width: 100%;"></div>
     </div>
 
     <!-- TABLA FOCOS -->
-    <div class="natura-card" id="table-section" style="display:none;">
-        <div class="section-label mb-4">Focos del ciclo</div>
-        <table id="tbl-v17" class="table w-100">
-            <thead>
-                <tr>
-                    <th style="width: 40px;"></th>
-                    <th>Descripción Foco</th>
-                    <th>Categoría</th>
-                    <th>Unidades</th>
-                    <th>Gap Uni %</th>
-                    <th>Receta Bruta</th>
-                    <th>Gap Receta %</th>
-                    <th>Productividad</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+    <div class="bg-white border border-gray-100 rounded-card p-6 shadow-sm" id="table-section" style="display:none;">
+        <div class="text-[10px] font-bold text-text-muted uppercase tracking-widest mb-6">Focos del ciclo</div>
+        <div class="overflow-x-auto">
+            <table id="tbl-v17" class="table min-w-full text-sm">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"></th>
+                        <th>Descripción Foco</th>
+                        <th>Categoría</th>
+                        <th>Unidades</th>
+                        <th>Gap Uni %</th>
+                        <th>Receta Bruta</th>
+                        <th>Gap Receta %</th>
+                        <th>Productividad</th>
+                        <th>Cortes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100"></tbody>
+            </table>
+        </div>
     </div>
 
-</div><!-- /container -->
+</div>
 
 <!-- SCRIPTS -->
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
 
 <script>
     // Inicializar iconos Lucide
@@ -601,8 +344,13 @@
         const e  = document.getElementById(id);
         const p  = v >= 0 ? "+" : "";
         e.innerText    = `${p}${v.toFixed(1).replace('.', ',')}${s}`;
-        e.style.color  = v >= 0 ? "var(--status-success-text)" : "var(--status-error-text)";
-        e.style.fontWeight = "600";
+        
+        // Menores a cero en rojo (t-red), iguales o mayores en verde (t-green)
+        if (v >= 0) {
+            e.className = "text-xs font-semibold mt-1 t-green";
+        } else {
+            e.className = "text-xs font-semibold mt-1 t-red";
+        }
     }
 
     // — Gráfico de categorías —
@@ -667,10 +415,12 @@
         const gs = {};
         data.forEach(d => {
             const k = d.Foco_UI || "Sin Foco";
-            if (!gs[k]) gs[k] = { n: k, cat: d.Categoría, tu:0, pu:0, tr:0, pr:0, tp:0, c:0, items: [] };
+            if (!gs[k]) gs[k] = { n: k, cat: d.Categoría, tu:0, pu:0, tr:0, pr:0, tp:0, tcort:0, c:0, items: [] };
             gs[k].tu += d.Unidades_Actual; gs[k].pu += d.Unidades_Plan;
             gs[k].tr += d.Receta_Bruta;    gs[k].pr += d.Receta_Plan;
-            gs[k].tp += d.Productividad;   gs[k].c++;
+            gs[k].tp += d.Productividad;
+            gs[k].tcort += d.Cortes || 0;
+            gs[k].c++;
             gs[k].items.push(d);
         });
 
@@ -683,15 +433,21 @@
             const gR = r.pr > 0 ? ((r.tr / r.pr) - 1) * 100 : 0;
             const tr = document.createElement('tr');
             tr.dataset.cd = JSON.stringify(r.items);
+            
+            // Colores porcentajes: menor a 0 en rojo, mayor/igual a 0 en verde
+            const classU = gU < 0 ? 't-red' : 't-green';
+            const classR = gR < 0 ? 't-red' : 't-green';
+
             tr.innerHTML = `
                 <td class="details-control"></td>
-                <td><span style="font-weight:600;color:var(--text-main)">${r.n}</span></td>
-                <td><span class="cat-badge">${r.cat || '—'}</span></td>
-                <td style="color:var(--text-main)">${fNum(r.tu)}</td>
-                <td class="${gU < 0 ? 't-red' : 't-green'}">${gU.toFixed(1).replace('.', ',')}%</td>
-                <td style="color:var(--text-main)">${fNum(r.tr, true)}</td>
-                <td class="${gR < 0 ? 't-red' : 't-green'}">${gR.toFixed(1).replace('.', ',')}%</td>
-                <td style="font-weight:600;color:var(--natura-orange)" class="text-right">${(r.tp / r.c).toFixed(1).replace('.', ',')}</td>
+                <td><span class="font-semibold text-text-main">${r.n}</span></td>
+                <td><span class="inline-block bg-natura-gray text-text-secondary text-xs px-2.5 py-0.5 rounded-full border border-gray-100">${r.cat || '—'}</span></td>
+                <td class="text-text-main">${fNum(r.tu)}</td>
+                <td class="${classU}">${gU >= 0 ? '+' : ''}${gU.toFixed(1).replace('.', ',')}%</td>
+                <td class="text-text-main">${fNum(r.tr, true)}</td>
+                <td class="${classR}">${gR >= 0 ? '+' : ''}${gR.toFixed(1).replace('.', ',')}%</td>
+                <td class="font-semibold text-natura-orange text-right">${(r.tp / r.c).toFixed(1).replace('.', ',')}</td>
+                <td class="text-text-main text-right">${fNum(r.tcort)}</td>
             `;
             tbody.appendChild(tr);
         });
@@ -699,40 +455,72 @@
         if (tableV17) tableV17.destroy();
         tableV17 = $('#tbl-v17').DataTable({
             pageLength: 15,
-            language: { search: "Filtrar focos:", info: "Mostrando _TOTAL_ focos estratégicos" }
+            language: { 
+                search: "Filtrar focos:", 
+                info: "Mostrando _TOTAL_ focos estratégicos",
+                lengthMenu: "Mostrar _MENU_ registros",
+                paginate: {
+                    first: "Primero",
+                    last: "Último",
+                    next: "Siguiente",
+                    previous: "Anterior"
+                }
+            }
         });
 
         $('#tbl-v17 tbody').off('click', 'td.details-control').on('click', 'td.details-control', function () {
             const r = $(this).closest('tr');
             const row = tableV17.row(r);
-            if (row.child.isShown()) { row.child.hide(); r.removeClass('shown'); }
-            else { row.child(renderV17Child(JSON.parse(r[0].dataset.cd))).show(); r.addClass('shown'); }
+            if (row.child.isShown()) { 
+                row.child.hide(); 
+                r.removeClass('shown'); 
+            } else { 
+                row.child(renderV17Child(JSON.parse(r[0].dataset.cd))).show(); 
+                r.addClass('shown'); 
+            }
         });
     }
 
     function renderV17Child(items) {
-        let h = `<div class="child-card"><table class="child-tbl">
-            <thead><tr>
-                <th>SKU</th><th>Producto</th><th>Cat.</th>
-                <th class="text-end">Uni Trend</th><th class="text-end">Gap Uni %</th>
-                <th class="text-end">Receta Bruta</th><th class="text-end">Gap Rec. %</th>
-                <th class="text-end">Prod.</th><th class="text-end">Gap Prod %</th>
-            </tr></thead><tbody>`;
+        let h = `<div class="bg-slate-50 border border-gray-100 rounded-card p-6 my-3 mx-4">
+            <table class="w-full text-xs text-left text-text-main border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">SKU</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Producto</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest">Cat.</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Uni Trend</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Gap Uni %</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Receta Bruta</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Gap Rec. %</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Prod.</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Gap Prod %</th>
+                        <th class="py-2 text-[10px] font-bold text-text-muted uppercase tracking-widest text-end">Cortes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">`;
 
         items.sort((a, b) => b.Receta_Bruta - a.Receta_Bruta).forEach(i => {
             const gu = i.Unidades_Plan      > 0 ? ((i.Unidades_Actual / i.Unidades_Plan) - 1) * 100 : 0;
             const gr = i.Receta_Plan        > 0 ? ((i.Receta_Bruta    / i.Receta_Plan)   - 1) * 100 : 0;
             const gp = i.Productividad_Plan > 0 ? ((i.Productividad   / i.Productividad_Plan) - 1) * 100 : 0;
-            h += `<tr>
-                <td style="color:var(--text-muted);font-size:0.78rem">${i.SKU}</td>
-                <td style="font-weight:600">${i.Producto_Desc || "—"}</td>
-                <td><span class="cat-badge">${i.Categoría}</span></td>
-                <td class="text-end">${i.Unidades_Actual.toFixed(0)}</td>
-                <td class="text-end ${gu < 0 ? 't-red' : 't-green'}">${gu.toFixed(1).replace('.', ',')}%</td>
-                <td class="text-end">${fNum(i.Receta_Bruta, true)}</td>
-                <td class="text-end ${gr < 0 ? 't-red' : 't-green'}">${gr.toFixed(1).replace('.', ',')}%</td>
-                <td class="text-end">${i.Productividad.toFixed(2).replace('.', ',')}</td>
-                <td class="text-end ${gp < 0 ? 't-red' : 't-green'}">${gp.toFixed(1).replace('.', ',')}%</td>
+            
+            // Colores porcentajes: menor a 0 en rojo, mayor/igual a 0 en verde
+            const class_gu = gu < 0 ? 't-red' : 't-green';
+            const class_gr = gr < 0 ? 't-red' : 't-green';
+            const class_gp = gp < 0 ? 't-red' : 't-green';
+
+            h += `<tr class="hover:bg-gray-100/50 transition-colors">
+                <td class="py-2.5 text-text-secondary font-mono">${i.SKU}</td>
+                <td class="py-2.5 font-semibold text-text-main">${i.Producto_Desc || "—"}</td>
+                <td class="py-2.5"><span class="inline-block bg-natura-gray text-text-secondary text-[11px] px-2 py-0.5 rounded-full border border-gray-100">${i.Categoría}</span></td>
+                <td class="py-2.5 text-end font-medium">${i.Unidades_Actual.toFixed(0)}</td>
+                <td class="py-2.5 text-end ${class_gu}">${gu >= 0 ? '+' : ''}${gu.toFixed(1).replace('.', ',')}%</td>
+                <td class="py-2.5 text-end font-medium">${fNum(i.Receta_Bruta, true)}</td>
+                <td class="py-2.5 text-end ${class_gr}">${gr >= 0 ? '+' : ''}${gr.toFixed(1).replace('.', ',')}%</td>
+                <td class="py-2.5 text-end font-medium">${i.Productividad.toFixed(2).replace('.', ',')}</td>
+                <td class="py-2.5 text-end ${class_gp}">${gp >= 0 ? '+' : ''}${gp.toFixed(1).replace('.', ',')}%</td>
+                <td class="py-2.5 text-end font-medium">${fNum(i.Cortes)}</td>
             </tr>`;
         });
 
@@ -742,8 +530,12 @@
     // — Controles —
     function setMetV17(m, btn) {
         metV17 = m;
-        document.querySelectorAll('.btn-sw-opt').forEach(x => x.classList.remove('active'));
-        btn.classList.add('active');
+        document.querySelectorAll('#chart-section button').forEach(x => {
+            x.classList.remove('bg-white', 'text-natura-orange', 'shadow-sm');
+            x.classList.add('text-text-secondary');
+        });
+        btn.classList.add('bg-white', 'text-natura-orange', 'shadow-sm');
+        btn.classList.remove('text-text-secondary');
         refreshV17();
     }
 
@@ -758,8 +550,10 @@
 
     // — Carga inicial desde GitHub —
     window.onload = function () {
-        // Fuente de datos: repositorio GitHub del proyecto
-        // Ruta local de insumos: G:\Unidades compartidas\Gestion Comercial\Tableros y Automatizaciones\Tendencias ciclares\
+        // Inicializar color del switch de métricas
+        const activeSwBtn = document.getElementById('btn-rec');
+        activeSwBtn.classList.add('bg-white', 'text-natura-orange', 'shadow-sm');
+
         const urlGitHub = "https://raw.githubusercontent.com/pablorouco-ux/tendencia_ciclar/main/datos.json?t=" + new Date().getTime();
 
         fetch(urlGitHub)
@@ -779,7 +573,7 @@
 
                 // Timestamp de carga
                 document.getElementById('nav-timestamp').innerText =
-                    "Datos actualizados: " + new Date().toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+                    "Datos actualizados: " + new Date().toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) + " hs";
 
                 v17Data = data;
                 refreshV17();
@@ -788,8 +582,8 @@
             .catch(error => {
                 console.error("Error al obtener datos de GitHub:", error);
                 document.getElementById('loading-indicator').innerHTML = `
-                    <div style="background:var(--status-error-bg);color:var(--status-error-text);border-radius:10px;padding:14px 18px;font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:8px;">
-                        <i data-lucide="alert-circle" style="width:16px;height:16px;flex-shrink:0;"></i>
+                    <div class="bg-status-error-bg text-status-error-text border border-status-error-text/10 rounded-btn p-4 text-xs font-semibold flex items-center gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
                         Error al conectar con el servidor de datos. Verificá tu conexión o ejecutá <strong>Tendencia.exe</strong> para regenerar el archivo.
                     </div>`;
                 lucide.createIcons();
