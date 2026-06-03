@@ -160,7 +160,7 @@
             <p class="text-[11px] text-text-muted">Gestión Comercial · Natura &amp; Avon</p>
         </div>
     </div>
-    <div id="nav-timestamp" class="text-xs text-text-muted font-medium">Datos actualizados: 03/06/2026 a las 13:45 hs</div>
+    <div id="nav-timestamp" class="text-xs text-text-muted font-medium">Datos actualizados: 03/06/2026 a las 13:58 hs</div>
 </header>
 
 <!-- CONTENIDO PRINCIPAL -->
@@ -312,13 +312,25 @@
             (eVal === "ALL" || d.Empresa === eVal)
         );
 
-        let tu=0, tr=0, tp=0, pu=0, pr=0, pp=0, tc=0, pc=0;
+        let tu=0, tr=0, pu=0, pr=0, tc=0, pc=0;
+        // Para productividad: promedio ponderado por unidades
+        let sumProdW=0, sumProdPlanW=0, sumWU=0, sumWUPlan=0;
         filtered.forEach(d => {
-            tu += d.Unidades_Actual;  tr += d.Receta_Bruta;   tp += d.Productividad;
-            pu += d.Unidades_Plan;    pr += d.Receta_Plan;     pp += d.Productividad_Plan;
+            tu += d.Unidades_Actual;  tr += d.Receta_Bruta;
+            pu += d.Unidades_Plan;    pr += d.Receta_Plan;
             tc += (d.CMV || 0) * d.Unidades_Actual;
             pc += (d.CMV || 0) * d.Unidades_Plan;
+            // Productividad ponderada: peso = unidades vendidas
+            const w  = d.Unidades_Actual || 0;
+            const wp = d.Unidades_Plan   || 0;
+            sumProdW     += (d.Productividad      || 0) * w;
+            sumProdPlanW += (d.Productividad_Plan || 0) * wp;
+            sumWU        += w;
+            sumWUPlan    += wp;
         });
+
+        const tp = sumWU     > 0 ? sumProdW     / sumWU     : 0;
+        const pp = sumWUPlan > 0 ? sumProdPlanW / sumWUPlan : 0;
 
         const NET_FACTOR = 0.82;
         const tr_net  = tr * NET_FACTOR;
@@ -328,7 +340,7 @@
 
         document.getElementById('k-u').innerText = fNum(tu);
         document.getElementById('k-r').innerText = fNum(tr, true);
-        document.getElementById('k-p').innerText = tp !== null && tp !== undefined && !isNaN(tp) ? tp.toFixed(1).replace('.', ',') : "—";
+        document.getElementById('k-p').innerText = tp > 0 ? tp.toFixed(2).replace('.', ',') : "—";
         document.getElementById('k-m').innerText = mcPct.toFixed(1).replace('.', ',') + "%";
 
         setKpiTrend('t-u', pu > 0 ? ((tu - pu) / pu * 100) : 0);
@@ -356,8 +368,10 @@
     // — Gráfico de categorías —
     function renderV17Chart(data) {
         const agg = {};
+        // Helper: obtener el valor de Categoría (por posible variante de clave)
+        function getCat(d) { return d['Categoría'] || d['Categoria'] || d['Categor\u00eda'] || 'Otros'; }
         data.forEach(d => {
-            const k = d.Categoría || "Otros";
+            const k = getCat(d) || "Otros";
             if (!agg[k]) agg[k] = { tr:0, pr:0, tu:0, pu:0, tc:0, pc:0 };
             agg[k].tr += d.Receta_Bruta;      agg[k].pr += d.Receta_Plan;
             agg[k].tu += d.Unidades_Actual;   agg[k].pu += d.Unidades_Plan;
@@ -413,12 +427,21 @@
     // — Tabla de focos —
     function renderV17Table(data) {
         const gs = {};
+        // Helper: obtener el valor de Categoría (por posible variante de clave)
+        function getCat(d) { return d['Categoría'] || d['Categoria'] || d['Categor\u00eda'] || 'Otros'; }
         data.forEach(d => {
             const k = d.Foco_UI || "Sin Foco";
-            if (!gs[k]) gs[k] = { n: k, cat: d.Categoría, tu:0, pu:0, tr:0, pr:0, tp:0, tcort:0, c:0, items: [] };
-            gs[k].tu += d.Unidades_Actual; gs[k].pu += d.Unidades_Plan;
+            if (!gs[k]) gs[k] = { n: k, cat: getCat(d), tu:0, pu:0, tr:0, pr:0,
+                                   sumPW:0, sumWU:0, sumPPW:0, sumWUPlan:0, tcort:0, c:0, items: [] };
+            const wu  = d.Unidades_Actual || 0;
+            const wup = d.Unidades_Plan   || 0;
+            gs[k].tu += wu; gs[k].pu += wup;
             gs[k].tr += d.Receta_Bruta;    gs[k].pr += d.Receta_Plan;
-            gs[k].tp += d.Productividad;
+            // Productividad ponderada por unidades
+            gs[k].sumPW    += (d.Productividad      || 0) * wu;
+            gs[k].sumWU    += wu;
+            gs[k].sumPPW   += (d.Productividad_Plan || 0) * wup;
+            gs[k].sumWUPlan+= wup;
             gs[k].tcort += d.Cortes || 0;
             gs[k].c++;
             gs[k].items.push(d);
@@ -429,14 +452,18 @@
         tbody.innerHTML = "";
 
         rows.forEach(r => {
-            const gU = r.pu > 0 ? ((r.tu / r.pu) - 1) * 100 : 0;
-            const gR = r.pr > 0 ? ((r.tr / r.pr) - 1) * 100 : 0;
-            const tr = document.createElement('tr');
+            const gU  = r.pu > 0 ? ((r.tu / r.pu) - 1) * 100 : 0;
+            const gR  = r.pr > 0 ? ((r.tr / r.pr) - 1) * 100 : 0;
+            const tp  = r.sumWU     > 0 ? r.sumPW  / r.sumWU     : 0;
+            const pp  = r.sumWUPlan > 0 ? r.sumPPW / r.sumWUPlan : 0;
+            const gP  = pp > 0 ? ((tp / pp) - 1) * 100 : 0;
+            const tr  = document.createElement('tr');
             tr.dataset.cd = JSON.stringify(r.items);
             
             // Colores porcentajes: menor a 0 en rojo, mayor/igual a 0 en verde
             const classU = gU < 0 ? 't-red' : 't-green';
             const classR = gR < 0 ? 't-red' : 't-green';
+            const classP = gP < 0 ? 't-red' : 't-green';
 
             tr.innerHTML = `
                 <td class="details-control"></td>
@@ -446,7 +473,7 @@
                 <td class="${classU}">${gU >= 0 ? '+' : ''}${gU.toFixed(1).replace('.', ',')}%</td>
                 <td class="text-text-main">${fNum(r.tr, true)}</td>
                 <td class="${classR}">${gR >= 0 ? '+' : ''}${gR.toFixed(1).replace('.', ',')}%</td>
-                <td class="font-semibold text-natura-orange text-right">${(r.tp / r.c).toFixed(1).replace('.', ',')}</td>
+                <td class="font-semibold text-natura-orange text-right">${tp > 0 ? tp.toFixed(2).replace('.', ',') : '—'} <span class="${classP} text-[10px] font-normal">${gP >= 0 ? '+' : ''}${gP.toFixed(1).replace('.', ',')}%</span></td>
                 <td class="text-text-main text-right">${fNum(r.tcort)}</td>
             `;
             tbody.appendChild(tr);
